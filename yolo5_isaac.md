@@ -19,7 +19,7 @@ pip install -r requirements.txt  # install
 ## Train the model
 
 ```bash
-python train.py --img 640 --epochs 300 --data data.yaml --weights yolov5s.pt
+python train.py --img 640 --epochs 300 --data data.yaml --weights yolov5s.pt 
 ```
 
 ## Model preparation
@@ -35,7 +35,7 @@ This guide explains how to export a trained YOLOv5 rocket model from PyTorch to 
 This command exports a pretrained YOLOv5s model to TorchScript and ONNX formats.
 
 ```bash
-python3 export.py --weights yolov5s.pt --include onnx
+python3 export.py --weights best.pt --include onnx --data data/data.yaml
 ```
 
 ## Object Detection pipeline Setup
@@ -53,7 +53,7 @@ git clone https://github.com/NVIDIA-AI-IOT/YOLOv5-with-Isaac-ROS.git
 
 2. Download/Copy requirements.txt from the Ultralytics YOLOv5 project to `workspaces/isaac_ros-dev/src`.
 
-3. Copy your ONNX model (say, `yolov5s.onnx`) from above to `workspaces/isaac_ros-dev/src`.
+3. Copy your ONNX model (say, `best.onnx`) from above to `workspaces/isaac_ros-dev/src`.
 
 4. Setup Isaac ROS Realsense camera:
 
@@ -143,7 +143,7 @@ pip install -v .
    +- isaac_ros-dev
       +- src
          +- requirements.txt
-         +- yolov5s.onnx
+         +- best.onnx
          +- isaac_ros_common
          +- YOLOv5-with-Isaac-ROS
             +- README
@@ -190,18 +190,18 @@ ros2 launch realsense2_camera rs_launch.py
 ros2 run rqt_image_view rqt_image_view 
 ```
 
-> Note: if the image is not published pls check you are using the `typeC` from camera and `usb` to laptop.
+> Note: if the image is not published pls check you are using the `TypeC` from camera and `USB` to laptop.
 
 4. Generate the TensorRT engine file first using the `isaac_ros_tensor_rt` node:
 
 ```bash
-ros2 launch isaac_ros_tensor_rt isaac_ros_tensor_rt.launch.py model_file_path:=<absolute-path-to-onnx-file> engine_file_path:=<absolute-path-where-you-want-to-save-engine> input_binding_names:=['images'] output_binding_names:=['output0']
+ros2 launch yolov5_isaac_ros isaac_ros_yolov5_tensor_rt.launch.py model_file_path:=/workspaces/isaac_ros-dev/src/best.onnx engine_file_path:=/workspaces/isaac_ros-dev/src/best.plan input_binding_names:=['images'] output_binding_names:=['output0'] network_image_width:=640 network_image_height:=640
 ```
 
-> Note: Allow this step `~15 minutes` as engine generation takes time. 
+> Note: Allow this step `~15 minutes` as engine generation takes time.
 
 5. Pass the generated engine file to the `yolov5_isaac_ros` node
 
 ```bash
-ros2 launch yolov5_isaac_ros isaac_ros_yolov5_tensor_rt.launch.py engine_file_path:=/workspaces/isaac_ros-dev/src/yolov5s.plan input_binding_names:=['images'] output_binding_names:=['output0'] network_image_width:=640 network_image_height:=640    
+ros2 launch yolov5_isaac_ros isaac_ros_yolov5_tensor_rt.launch.py engine_file_path:=/workspaces/isaac_ros-dev/src/best.plan input_binding_names:=['images'] output_binding_names:=['output0'] network_image_width:=640 network_image_height:=640   
 ```
